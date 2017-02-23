@@ -111,11 +111,74 @@ describe ('blog posts API resource', function(){
 				res.body.should.include.keys(
 					'id', 'title', 'content', 'author', 'created');
 
-				res.body.id.should.equal(newBlogpost)
+				res.body.id.should.not.be.null;
+				res.body.title.should.equal(newBlogpost.title);
+				res.body.content.should.equal(newBlogpost.content);
+				res.body.author.should.equal(newBlogpost.author);
+				res.body.created.should.equal(newBlogpost.created);
 			})
-		})
-	})
-})
+			.then(function(blogpost){
+				blogpost.title.should.equal(newBlogpost.title);
+				blogpost.content.should.equal(newBlogpost.content);
+				blogpost.author.should.equal(newBlogpost.author);
+				blogpost.created.should.equal(newBlogpost.created);
+			});
+		});
+	});
+
+	describe('PUT endpoint', function(){
+		it('should update fields sent', function(){
+			const updateData = {
+				title: "test blog title here",
+				content: "test content for blog is right here"
+			};
+
+			return BlogPost
+				.findOne()
+				.exec()
+				.then(function(blogpost){
+					updateData.id = blogpost.id;
+
+					return chai.request(app)
+						.put(`/posts/${posts.id}`)
+						.send(updateData);
+				})
+
+				.then(function(res){
+					res.should.have.status(204);
+
+					return BlogPost.findById(updateData.id).exec();
+				})
+				.then(function(blogpost){
+					blogpost.title.should.equal(updateData.title);
+					blogpost.content.should.equal(updateData.content);
+				});
+			});
+		});
+
+
+	describe('DELETE endpoint', function(){
+		it('delete a blogpost by id', function(){
+
+			let blogpost;
+
+			return BlogPost
+			.findOne()
+			.exec()
+			.then(function(_blogpost){
+				blogpost = _blogpost;
+				return chai.request(app).delete(`/posts/${posts.id}`);
+			})
+			.then(function(res){
+				res.should.have.status(204);
+				return BlogPost.findById(post.id).exec();
+			})
+			.then(function(_blogpost){
+				should.not.exist(_blogpost);
+			});
+		});
+	});
+});
 
 
 
