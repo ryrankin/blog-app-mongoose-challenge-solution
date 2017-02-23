@@ -75,14 +75,44 @@ describe ('blog posts API resource', function(){
 				res.body.posts.should.be.a('array');
 				res.body.posts.should.have.length.of.at.least(1);
 
-				res.body.posts.forEach(function){
+				res.body.posts.forEach(function(blogpost){
 					posts.should.be.a('object');
-					post.should.include.keys('title', 'content', 'author');
+					post.should.include.keys('title', 'content', 'author', 'created');
 				});
 			resBlogPost = res.body.posts[0];
 			return BlogPost.findById(resBlogPost.id);
 			})
-		.then(function())
+		.then(function(blogpost){
+
+			resBlogPost.id.should.equal(blogpost.id);
+			resBlogPost.title.should.equal(blogpost.title);
+			resBlogPost.content.should.equal(blogpost.content);
+			resBlogPost.author.should.equal(blogpost.author);
+			resBlogPost.created.should.equal(blogpost.created);
+		});
+		});
+	});
+
+
+	describe('POST endpoint', function(){
+
+		it('should add a new blogpost', function(){
+
+			conts newBlogpost = generateBlogpostData();
+
+
+			return chai.request(app)
+			.post('/posts')
+			.send(newBlogpost)
+			.then(function(res){
+				res.should.have.status(201);
+				res.should.be.json;
+				res.body.should.be.a('object');
+				res.body.should.include.keys(
+					'id', 'title', 'content', 'author', 'created');
+
+				res.body.id.should.equal(newBlogpost)
+			})
 		})
 	})
 })
