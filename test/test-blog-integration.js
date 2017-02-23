@@ -12,15 +12,25 @@ const {TEST_DATABASE_URL} = require('../config');
 chai.use(chaiHttp);
 
 
+
+function tearDownDb(){
+	return new Promise((resolve, reject) =>{
+		console.warm('Deleting database');
+		mongoose.connection.dropDatabase()
+		.then(result => resolve(result))
+		.catch(err => reject(err))
+	});
+}
+
+
 function seedBlogData(){
 	console.info('seeding blog data');
 	const seedData = [];
-
 	for(let i=1; i<=10; i++){
 		seedData.push({
 			author: {
 				firstName: faker.name.firstName(),
-				lastName: fake.name.lastName()
+				lastName: faker.name.lastName()
 			},
 			title: faker.title.sentence(),
 			content: faker.lorem.text()
@@ -48,6 +58,7 @@ describe ('blog posts API resource', function(){
 	});
 
 
+
 	describe('GET endpoint', function(){
 		
 		it('should return all existing blog posts', function(){
@@ -58,11 +69,11 @@ describe ('blog posts API resource', function(){
 		.then(function(_res){
 			res = _res;
 			res.should.have.status(200);
-			res.body.posts.should.have.length.of.at.least(1);
+			res.body.should.have.length.of.at.least(1);
 			return BlogPost.count();
 			})
 		.then(function(count){
-			res.body.posts.should.have.length.of(count);
+			res.body.should.have.length.of(count);
 			});
 		});
 
@@ -74,14 +85,14 @@ describe ('blog posts API resource', function(){
 			.then(function(res){
 				res.should.have.status(200);
 				res.should.be.json;
-				res.body.posts.should.be.a('array');
-				res.body.posts.should.have.length.of.at.least(1);
+				res.body.should.be.a('array');
+				res.body.should.have.length.of.at.least(1);
 
-				res.body.posts.forEach(function(blogpost){
-					posts.should.be.a('object');
-					post.should.include.keys('title', 'content', 'author', 'created');
+				res.body.forEach(function(blogpost){
+					blogpost.should.be.a('object');
+					blogpost.should.include.keys('id', 'title', 'content', 'author', 'created');
 				});
-			resBlogPost = res.body.posts[0];
+			resBlogPost = res.body[0];
 			return BlogPost.findById(resBlogPost.id).exec();
 			})
 		.then(function(blogpost){
@@ -90,15 +101,22 @@ describe ('blog posts API resource', function(){
 			resBlogPost.content.should.equal(blogpost.content);
 			resBlogPost.author.should.equal(blogpost.authorName);
 		});
-		});
 	});
+});
 
 
 	describe('POST endpoint', function(){
 
 		it('should add a new blogpost', function(){
 
-			conts newBlogpost = generateBlogpostData();
+			const newBlogpost = {
+				title: faker.lorem.sentence(),
+				content: faker.lorem.text(),
+				author: {
+					firstName: faker.name.firstName(),
+					lastName: faker.name.lastName(),
+				}
+			};
 
 
 			return chai.request(app)
