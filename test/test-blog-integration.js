@@ -15,7 +15,7 @@ chai.use(chaiHttp);
 
 function tearDownDb(){
 	return new Promise((resolve, reject) =>{
-		console.warm('Deleting database');
+		console.warn('Deleting database');
 		mongoose.connection.dropDatabase()
 		.then(result => resolve(result))
 		.catch(err => reject(err))
@@ -32,7 +32,7 @@ function seedBlogData(){
 				firstName: faker.name.firstName(),
 				lastName: faker.name.lastName()
 			},
-			title: faker.title.sentence(),
+			title: faker.lorem.sentence(),
 			content: faker.lorem.text()
 		});
 	}
@@ -55,7 +55,7 @@ describe ('blog posts API resource', function(){
 
 	after(function(){
 		return closeServer();
-	});
+	})
 
 
 
@@ -133,7 +133,7 @@ describe ('blog posts API resource', function(){
 				res.body.title.should.equal(newBlogpost.title);
 				res.body.content.should.equal(newBlogpost.content);
 				res.body.author.should.equal(
-					`${newBlogpost.author.firstName} $newBlogpost.author.lastName`);
+					`${newBlogpost.author.firstName} ${newBlogpost.author.lastName}`);
 				return BlogPost.findById(res.body.id).exec();
 
 			})
@@ -203,7 +203,7 @@ describe ('blog posts API resource', function(){
 			})
 			.then(function(res){
 				res.should.have.status(204);
-				return BlogPost.findById(post.id).exec();
+				return BlogPost.findById(blogpost.id).exec();
 			})
 			.then(function(_blogpost){
 				should.not.exist(_blogpost);
